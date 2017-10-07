@@ -1,0 +1,20 @@
+@import '../../node_modules/tachyons/css/tachyons.css';
+@import '../../node_modules/tachyons-flexbox/css/tachyons-base.css';
+@import '../../node_modules/tachyons-flexbox/css/tachyons-flexbox.css';
+
+/* coolors.co/89d2dc-232ed1-101d42-3b60e4-0d1317 */
+:root {
+  --sky-blue: rgba(137, 210, 220, 1);
+  --palatinate-blue: rgba(35, 46, 209, 1);
+  --maastricht-blue: rgba(16, 29, 66, 1);
+  --royal-blue: rgba(59, 96, 228, 1);
+  --licorice: rgba(13, 19, 23, 1);
+}
+
+.bg-royal-blue {
+  background-color: var(--royal-blue);
+}
+
+.bg-maastricht-blue {
+  background-color: var(--maastricht-blue);
+}
