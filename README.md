@@ -4,5 +4,6 @@
 
 ```sh
 npm i
+npx electron-rebuild
 npm run watch
 ```

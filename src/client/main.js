@@ -9,4 +9,8 @@ logUncaughtErrors({ window })
 
 console.log(process.versions)
 
+const windowData = Electron.ipcRenderer.sendSync('getWindowData')
+
+// TODO: create & connect ssb-client
+
 ReactDOM.render(<Layout />, document.getElementById('root'))

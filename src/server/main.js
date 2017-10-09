@@ -1,17 +1,14 @@
-import Electron from 'electron'
+import { app, BrowserWindow, ipcMain } from 'electron'
 import Path from 'path'
 import Url from 'url'
-
-// Module to control application life.
-const app = Electron.app
-// Module to create native browser window.
-const BrowserWindow = Electron.BrowserWindow
+import { createSbot, createSsbConfig } from '../lib/sbot'
+import Config from './config'
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow
 
-function createWindow () {
+function createWindow (data = null) {
   // Create the browser window.
   mainWindow = new BrowserWindow({width: 800, height: 600})
 
@@ -21,6 +18,8 @@ function createWindow () {
     protocol: 'file:',
     slashes: true
   }))
+
+  ipcMain.once('getWindowData', (e) => { e.returnValue = data })
 
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()
@@ -37,7 +36,16 @@ function createWindow () {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', createWindow)
+app.on('ready', () => {
+  createSsbConfig(Config.appName, { config: Config.ssb }, (err, ssbConfig) => {
+    if (err) throw err
+
+    createSbot(ssbConfig, (err) => {
+      if (err) throw err
+      createWindow({ ssbConfig })
+    })
+  })
+})
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
