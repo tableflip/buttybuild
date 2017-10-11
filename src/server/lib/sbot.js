@@ -37,7 +37,7 @@ export function createSsbConfig (name, opts, cb) {
   Keys.loadOrCreate(keyPath, (err, keys) => cb(err, { ...ssbConfig, keys }))
 }
 
-export function createSbot (config, cb) {
+export function createSbotServer (config, cb) {
   const sbot = Scuttlebot
     .use(Master)
     .use(Gossip)
