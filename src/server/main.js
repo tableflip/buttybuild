@@ -2,9 +2,17 @@ import { app, BrowserWindow, ipcMain } from 'electron'
 import Path from 'path'
 import Url from 'url'
 import Pull from 'pull-stream'
-import { createSbot, createSsbConfig } from '../lib/sbot'
+import explain from 'explain-error'
+import { createSbotServer, createSsbConfig } from './lib/sbot'
 import { createDockerClient } from '../lib/docker'
-import Config from './config'
+
+console.log(`
+ __           __
+|__)   |_|_  |__)   .| _|
+|__)|_||_|_\\/|__)|_|||(_|
+           /
+v${Config.version}
+`)
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -21,7 +29,8 @@ function createWindow (data = null) {
     slashes: true
   }))
 
-  ipcMain.once('getWindowData', (e) => { e.returnValue = data })
+  // TODO: disallow more than once
+  ipcMain.on('getWindowData', (e) => { e.returnValue = data })
 
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()
@@ -62,10 +71,10 @@ function createWindow (data = null) {
 // Some APIs can only be used after this event occurs.
 app.on('ready', () => {
   createSsbConfig(Config.appName, { config: Config.ssb }, (err, ssbConfig) => {
-    if (err) throw err
+    if (err) throw explain(err, 'Failed to create ssb config')
 
-    createSbot(ssbConfig, (err, sbot) => {
-      if (err) throw err
+    createSbotServer(ssbConfig, (err, sbot) => {
+      if (err) throw explain(err, 'Failed to create sbot server')
       createWindow({ ssbConfig, sbot })
     })
   })
