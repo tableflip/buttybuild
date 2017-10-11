@@ -1,47 +1,26 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import { withRouter } from 'react-router-dom'
-import explain from 'explain-error'
 import moment from 'moment'
 import bs58 from 'bs58'
+import pull from 'pull-stream'
 import { withSbot } from '../../lib/sbot'
+import { createPullContainer } from '../../lib/pull-container'
 
 export class Build extends Component {
   static propTypes = {
-    match: PropTypes.object.isRequired,
+    id: PropTypes.string,
+    build: PropTypes.object,
     sbot: PropTypes.object.isRequired
   }
 
-  state = { build: null }
-
-  componentDidMount () {
-    this.updateBuild(this.props)
-  }
-
-  componentWillReceiveProps (nextProps) {
-    this.updateBuild(nextProps)
-  }
-
-  updateBuild ({ sbot, match }) {
-    const key = bs58.decode(match.params.id).toString()
-
-    sbot.get(key, (err, build) => {
-      if (err) {
-        return console.error(explain(err, `Failed to get build ${match.params.id}`))
-      }
-      this.setState({ build })
-    })
-  }
-
   render () {
-    const { build } = this.state
+    const { build, id } = this.props
     if (!build) return null
-
-    const key = bs58.decode(this.props.match.params.id).toString()
 
     return (
       <div className='pa3'>
-        <p className='mt0'>ID {key}</p>
+        <p className='mt0'>ID {id}</p>
         <p className='mt0'>Repo {build.content.repo}</p>
         <p className='mt0'>Started {moment(build.timestamp).fromNow()}</p>
       </div>
@@ -49,4 +28,14 @@ export class Build extends Component {
   }
 }
 
-export default withRouter(withSbot(Build))
+export default withRouter(withSbot(createPullContainer(({ sbot, match }) => {
+  const key = bs58.decode(match.params.id).toString()
+
+  return {
+    id: pull.values([key]),
+    build: pull(
+      pull.values([key]),
+      pull.asyncMap((key, cb) => sbot.get(key, cb))
+    )
+  }
+}, Build)))

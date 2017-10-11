@@ -2,35 +2,21 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import { withRouter, Switch, Route, NavLink, Link } from 'react-router-dom'
 import pull from 'pull-stream'
-import explain from 'explain-error'
 import moment from 'moment'
 import bs58 from 'bs58'
 import { withSbot } from '../../lib/sbot'
 import Build from './Build'
+import { createPullContainer } from '../../lib/pull-container'
 
 export class GlobalBuilds extends Component {
   static propTypes = {
     match: PropTypes.object.isRequired,
-    sbot: PropTypes.object.isRequired
-  }
-
-  state = { builds: [] }
-
-  componentDidMount () {
-    const { sbot } = this.props
-
-    pull(
-      sbot.messagesByType({ type: 'buttybuild.build', limit: 100, reverse: true }),
-      pull.collect((err, builds) => {
-        if (err) return console.error(explain(err, 'Failed to fetch recent builds'))
-        this.setState({ builds })
-      })
-    )
+    sbot: PropTypes.object.isRequired,
+    builds: PropTypes.array.isRequired
   }
 
   render () {
-    const { match } = this.props
-    const { builds } = this.state
+    const { match, builds } = this.props
 
     return (
       <div className='flex h-100'>
@@ -65,4 +51,10 @@ export class GlobalBuilds extends Component {
   }
 }
 
-export default withRouter(withSbot(GlobalBuilds))
+export default withRouter(withSbot(createPullContainer(({ sbot }) => {
+  return {
+    builds: pull(
+      sbot.messagesByType({ type: 'buttybuild.build', limit: 100, reverse: true })
+    )
+  }
+}, GlobalBuilds)))
