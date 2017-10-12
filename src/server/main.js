@@ -1,7 +1,9 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import Path from 'path'
 import Url from 'url'
+import Pull from 'pull-stream'
 import { createSbot, createSsbConfig } from '../lib/sbot'
+import { createDockerClient } from '../lib/docker'
 import Config from './config'
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -31,6 +33,28 @@ function createWindow (data = null) {
     // when you should delete the corresponding element.
     mainWindow = null
   })
+
+  const docker = createDockerClient()
+
+  ipcMain.on('docker-info', () => {
+    docker.get('/info', {json: true}, (err, info) => {
+      if (err) return console.error(err)
+      data.sbot.publish({type: 'docker-info', ...info}, (err, arg) => {
+        if (err) return console.error(err)
+      })
+    })
+  })
+
+  ipcMain.on('settings', (event) => {
+    const source = data.sbot.messagesByType({type: 'docker-info'})
+    Pull(
+      source,
+      Pull.collect((err, array) => {
+        if (err) console.error(err)
+        event.sender.send('docker-info-data', array.map(d => d.value.content))
+      })
+    )
+  })
 }
 
 // This method will be called when Electron has finished
@@ -40,9 +64,9 @@ app.on('ready', () => {
   createSsbConfig(Config.appName, { config: Config.ssb }, (err, ssbConfig) => {
     if (err) throw err
 
-    createSbot(ssbConfig, (err) => {
+    createSbot(ssbConfig, (err, sbot) => {
       if (err) throw err
-      createWindow({ ssbConfig })
+      createWindow({ ssbConfig, sbot })
     })
   })
 })
