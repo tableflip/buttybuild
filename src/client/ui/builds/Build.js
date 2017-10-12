@@ -10,8 +10,7 @@ import { createPullContainer } from '../../lib/pull-container'
 export class Build extends Component {
   static propTypes = {
     id: PropTypes.string,
-    build: PropTypes.object,
-    sbot: PropTypes.object.isRequired
+    build: PropTypes.object
   }
 
   render () {

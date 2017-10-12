@@ -35,7 +35,7 @@ export function createPullContainer (getStreams, opts, Comp) {
       const streams = getStreams(props)
       const keys = Object.keys(streams)
 
-      console.log(Comp.name, 'setup')
+      // console.log(Comp.name, 'setup')
 
       this._abortables = keys.reduce((abortables, key) => {
         abortables[key] = Abortable()
@@ -43,7 +43,7 @@ export function createPullContainer (getStreams, opts, Comp) {
       }, {})
 
       keys.forEach((key) => {
-        console.log(Comp.name, 'collecting', key)
+        // console.log(Comp.name, 'collecting', key)
         pull(
           streams[key],
           this._abortables[key],
@@ -59,7 +59,7 @@ export function createPullContainer (getStreams, opts, Comp) {
               }
             }
 
-            console.log(Comp.name, 'collected', key)
+            // console.log(Comp.name, 'collected', key)
             this.setState({ [key]: chunks })
           })
         )
@@ -67,9 +67,9 @@ export function createPullContainer (getStreams, opts, Comp) {
     }
 
     abort () {
-      console.log(Comp.name, 'abort')
+      // console.log(Comp.name, 'abort')
       Object.keys(this._abortables).forEach((key) => {
-        console.log(Comp.name, 'aborting', key)
+        // console.log(Comp.name, 'aborting', key)
         this._abortables[key].abort()
       })
       this._abortables = {}

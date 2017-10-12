@@ -11,7 +11,6 @@ import { createPullContainer } from '../../lib/pull-container'
 export class GlobalBuilds extends Component {
   static propTypes = {
     match: PropTypes.object.isRequired,
-    sbot: PropTypes.object.isRequired,
     builds: PropTypes.array.isRequired
   }
 
