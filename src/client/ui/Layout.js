@@ -2,6 +2,7 @@ import React from 'react'
 import { HashRouter as Router, Route, NavLink, Redirect } from 'react-router-dom'
 import GlobalBuilds from './builds/Global'
 import LocalBuilds from './builds/Local'
+import RequestBuild from './builds/RequestBuild'
 import Settings from './Settings'
 
 export default () => {
@@ -20,6 +21,7 @@ export default () => {
           <Route exact path='/' render={() => <Redirect to='/builds/global' />} />
           <Route path='/builds/global' component={GlobalBuilds} />
           <Route path='/builds/local' component={LocalBuilds} />
+          <Route path='/builds/request' component={RequestBuild} />
           <Route path='/settings' component={Settings} />
         </div>
       </div>
