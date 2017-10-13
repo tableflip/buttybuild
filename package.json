@@ -38,7 +38,7 @@
     "react-dom": "^16.0.0",
     "react-provide": "^1.0.2",
     "react-router-dom": "^4.2.2",
-    "scuttlebot": "^10.4.6",
+    "scuttlebot": "github:ssbc/scuttlebot#fix-local-peer-replication",
     "ssb-about": "^0.1.0",
     "ssb-backlinks": "^0.4.0",
     "ssb-blobs": "^1.1.3",
