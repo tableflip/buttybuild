@@ -5,6 +5,7 @@ import Pull from 'pull-stream'
 import explain from 'explain-error'
 import { createSbotServer, createSsbConfig } from './lib/sbot'
 import { createDockerClient } from '../lib/docker'
+import Config from './config'
 
 console.log(`
  __           __
