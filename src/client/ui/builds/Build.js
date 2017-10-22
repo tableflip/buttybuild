@@ -43,4 +43,4 @@ export default withRouter(withSbot(createPullContainer(({ sbot, match }) => {
       )
     }
   }
-}, Build)))
+})(Build)))

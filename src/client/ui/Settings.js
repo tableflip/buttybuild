@@ -1,7 +1,6 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import explain from 'explain-error'
-import pull from 'pull-stream'
 import { withSbot } from '../lib/sbot'
 import { createPullContainer } from '../lib/pull-container'
 import { createDockerClient } from '../lib/docker'
@@ -60,17 +59,11 @@ export default withSbot(createPullContainer(({ sbot }) => {
   return {
     data: {
       live: true,
-      source: pull(
-        sbot.messagesByType({
-          type: 'buttybuild-docker-info',
-          live: true,
-          reverse: true
-        }),
-        // TODO: Why do I need to filer this chunk? { sync: true }
-        pull.filter((chunk) => {
-          return !(Object.keys(chunk).length === 1 && chunk.sync)
-        })
-      )
+      source: sbot.messagesByType({
+        type: 'buttybuild-docker-info',
+        live: true,
+        reverse: true
+      })
     }
   }
-}, SettingsContainer))
+})(SettingsContainer))

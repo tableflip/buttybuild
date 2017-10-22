@@ -1,7 +1,6 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import { withRouter, Switch, Route, NavLink, Link } from 'react-router-dom'
-import pull from 'pull-stream'
 import moment from 'moment'
 import bs58 from 'bs58'
 import { withSbot } from '../../lib/sbot'
@@ -54,9 +53,12 @@ export default withRouter(withSbot(createPullContainer(({ sbot }) => {
   return {
     builds: {
       live: true,
-      source: pull(
-        sbot.messagesByType({ type: 'buttybuild-build', limit: 100, reverse: true })
-      )
+      source: sbot.messagesByType({
+        type: 'buttybuild-build',
+        limit: 100,
+        reverse: true,
+        live: true
+      })
     }
   }
-}, GlobalBuilds)))
+})(GlobalBuilds)))
