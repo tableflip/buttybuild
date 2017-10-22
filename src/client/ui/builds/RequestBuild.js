@@ -18,7 +18,7 @@ class RequestBuild extends Component {
     e.preventDefault()
 
     const { sbot, history } = this.props
-    const msg = { type: 'buttybuild.build', repo: this.state.repo }
+    const msg = { type: 'buttybuild-build', repo: this.state.repo }
 
     sbot.publish(msg, (err) => {
       // TODO: notify user

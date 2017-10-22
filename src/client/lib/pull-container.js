@@ -2,21 +2,22 @@ import React, { Component } from 'react'
 import explain from 'explain-error'
 import pull from 'pull-stream'
 import Abortable from 'pull-abortable'
+import { isSource } from 'is-pull-stream'
 
-const noStreams = () => ({})
+const noSources = () => ({})
 
-export function createPullContainer (getStreams, opts, Comp) {
+export function createPullContainer (getSources, opts, Comp) {
   if (!Comp) {
     Comp = opts
     opts = {}
   }
 
   opts = opts || {}
-  getStreams = getStreams || noStreams
+  getSources = getSources || noSources
 
   class Container extends Component {
     state = {}
-    _abortables = {}
+    _configs = {}
 
     componentWillMount () {
       this.setup(this.props)
@@ -32,62 +33,82 @@ export function createPullContainer (getStreams, opts, Comp) {
     }
 
     setup (props) {
-      const streams = getStreams(props)
-      const keys = Object.keys(streams)
+      const sources = getSources(props)
+      const keys = Object.keys(sources)
 
       // console.log(Comp.name, 'setup')
 
-      this._abortables = keys.reduce((abortables, key) => {
-        abortables[key] = Abortable()
-        return abortables
+      const configs = keys.reduce((configs, key) => {
+        let source = sources[key]
+        let config
+
+        if (isSource(source)) {
+          config = { abortable: Abortable(), source }
+        } else {
+          config = { abortable: Abortable(), ...source }
+        }
+
+        configs[key] = config
+        return configs
       }, {})
 
+      this._configs = configs
+
       keys.forEach((key) => {
-        // console.log(Comp.name, 'collecting', key)
-        pull(
-          streams[key],
-          this._abortables[key],
-          pull.collect((err, chunks) => {
+        let source = sources[key]
+        let config = configs[key]
+        let sink
+
+        if (config.live) {
+          let data = []
+
+          sink = pull.drain((chunk) => {
+            data = Array.from(data)
+            data.push(chunk)
+            this.setState({ [key]: data })
+          }, (err) => {
+            // TODO: how to handle?
+            if (err) console.error(explain(err, `Failed to drain ${key}`))
+          })
+        } else {
+          sink = pull.collect((err, chunks) => {
             // TODO: how to handle?
             if (err) return console.error(explain(err, `Failed to collect ${key}`))
 
-            if (key[key.length - 1] !== 's') {
-              if (chunks.length === 0) {
-                chunks = null
-              } else if (chunks.length === 1) {
-                chunks = chunks[0]
-              }
+            // If this stream will only return one chunk, make it the value
+            if (config.single) {
+              chunks = chunks[0]
             }
 
             // console.log(Comp.name, 'collected', key)
             this.setState({ [key]: chunks })
           })
-        )
+        }
+
+        // console.log(Comp.name, 'collecting', key)
+        pull(source, config.abortable, sink)
       })
     }
 
     abort () {
       // console.log(Comp.name, 'abort')
-      Object.keys(this._abortables).forEach((key) => {
+      Object.keys(this._configs).forEach((key) => {
         // console.log(Comp.name, 'aborting', key)
-        this._abortables[key].abort()
+        this._configs[key].abortable.abort()
       })
-      this._abortables = {}
+      this._configs = {}
     }
 
     render () {
-      const { props } = this
+      const { props, state, _configs: configs } = this
 
-      const data = Object.keys(this._abortables).reduce((data, key) => {
-        if (this.state[key] !== undefined) {
-          data[key] = this.state[key]
-          return data
-        }
-
-        if (key[key.length - 1] === 's') {
-          data[key] = []
-        } else {
+      const data = Object.keys(configs).reduce((data, key) => {
+        if (state[key] !== undefined) {
+          data[key] = state[key]
+        } else if (configs[key].single) {
           data[key] = null
+        } else {
+          data[key] = []
         }
 
         return data

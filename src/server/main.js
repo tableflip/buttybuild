@@ -1,10 +1,8 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import Path from 'path'
 import Url from 'url'
-import Pull from 'pull-stream'
 import explain from 'explain-error'
 import { createSbotServer, createSsbConfig } from './lib/sbot'
-import { createDockerClient } from '../lib/docker'
 import Config from './config'
 
 console.log(`
@@ -47,28 +45,6 @@ function createWindow (data = null) {
     // when you should delete the corresponding element.
     mainWindow = null
   })
-
-  const docker = createDockerClient()
-
-  ipcMain.on('docker-info', () => {
-    docker.get('/info', {json: true}, (err, info) => {
-      if (err) return console.error(err)
-      data.sbot.publish({type: 'docker-info', ...info}, (err, arg) => {
-        if (err) return console.error(err)
-      })
-    })
-  })
-
-  ipcMain.on('settings', (event) => {
-    const source = data.sbot.messagesByType({type: 'docker-info'})
-    Pull(
-      source,
-      Pull.collect((err, array) => {
-        if (err) console.error(err)
-        event.sender.send('docker-info-data', array.map(d => d.value.content))
-      })
-    )
-  })
 }
 
 // This method will be called when Electron has finished
@@ -78,9 +54,9 @@ app.on('ready', () => {
   createSsbConfig(Config.appName, { config: Config.ssb }, (err, ssbConfig) => {
     if (err) throw explain(err, 'Failed to create ssb config')
 
-    createSbotServer(ssbConfig, (err, sbot) => {
+    createSbotServer(ssbConfig, (err) => {
       if (err) throw explain(err, 'Failed to create sbot server')
-      createWindow({ ssbConfig, sbot })
+      createWindow({ ssbConfig })
     })
   })
 })

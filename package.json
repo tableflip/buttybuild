@@ -29,6 +29,7 @@
     "bs58": "^4.0.1",
     "docker-remote-api": "^4.4.1",
     "explain-error": "^1.0.4",
+    "is-pull-stream": "0.0.0",
     "moment": "^2.19.0",
     "prop-types": "^15.6.0",
     "pull-abortable": "^4.1.1",

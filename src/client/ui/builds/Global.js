@@ -52,8 +52,11 @@ export class GlobalBuilds extends Component {
 
 export default withRouter(withSbot(createPullContainer(({ sbot }) => {
   return {
-    builds: pull(
-      sbot.messagesByType({ type: 'buttybuild.build', limit: 100, reverse: true })
-    )
+    builds: {
+      live: true,
+      source: pull(
+        sbot.messagesByType({ type: 'buttybuild-build', limit: 100, reverse: true })
+      )
+    }
   }
 }, GlobalBuilds)))

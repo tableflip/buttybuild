@@ -31,10 +31,16 @@ export default withRouter(withSbot(createPullContainer(({ sbot, match }) => {
   const key = bs58.decode(match.params.id).toString()
 
   return {
-    id: pull.values([key]),
-    build: pull(
-      pull.values([key]),
-      pull.asyncMap((key, cb) => sbot.get(key, cb))
-    )
+    id: {
+      single: true,
+      source: pull.values([key])
+    },
+    build: {
+      single: true,
+      source: pull(
+        pull.values([key]),
+        pull.asyncMap((key, cb) => sbot.get(key, cb))
+      )
+    }
   }
 }, Build)))
