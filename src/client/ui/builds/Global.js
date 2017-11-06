@@ -5,7 +5,7 @@ import moment from 'moment'
 import bs58 from 'bs58'
 import { withSbot } from '../../lib/sbot'
 import Build from './Build'
-import { createPullContainer } from '../../lib/pull-container'
+import pullContainer, { isSyncChunk } from '../../lib/pull-container'
 
 export class GlobalBuilds extends Component {
   static propTypes = {
@@ -19,7 +19,7 @@ export class GlobalBuilds extends Component {
     return (
       <div className='flex h-100'>
         <ul className='list ma0 pl0'>
-          {builds.map((build) => (
+          {builds.filter((b) => !isSyncChunk(b)).map((build) => (
             <li key={build.key}>
               <NavLink className='db pa3 bb b--near-white' activeClassName='bg-near-white' to={`${match.url}/build/${bs58.encode(Buffer.from(build.key))}`}>
                 {build.value.content.repo}
@@ -49,7 +49,7 @@ export class GlobalBuilds extends Component {
   }
 }
 
-export default withRouter(withSbot(createPullContainer(({ sbot }) => {
+export default withRouter(withSbot(pullContainer(({ sbot }) => {
   return {
     builds: {
       live: true,

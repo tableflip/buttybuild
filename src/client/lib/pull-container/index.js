@@ -3,14 +3,20 @@ import explain from 'explain-error'
 import pull from 'pull-stream'
 import Abortable from 'pull-abortable'
 import { isSource } from 'is-pull-stream'
+import isSyncChunk from './is-sync-chunk'
 
-function isSyncChunk (chunk) {
-  return chunk && chunk.sync && Object.keys(chunk).length === 1
-}
-
-export function createPullContainer (getSources, opts) {
+export default function pullContainer (getSources, opts) {
   opts = opts || {}
   getSources = getSources || (() => ({}))
+
+  let shouldUpdateSources = () => true
+
+  if (typeof opts === 'function') {
+    shouldUpdateSources = opts
+    opts = {}
+  } else if (opts.shouldUpdateSources) {
+    shouldUpdateSources = opts.shouldUpdateSources
+  }
 
   return (Comp) => {
     class Container extends Component {
@@ -22,8 +28,10 @@ export function createPullContainer (getSources, opts) {
       }
 
       componentWillReceiveProps (nextProps) {
-        this.abort()
-        this.setup(nextProps)
+        if (shouldUpdateSources(this.props, nextProps)) {
+          this.abort()
+          this.setup(nextProps)
+        }
       }
 
       componentWillUnmount () {
@@ -59,17 +67,18 @@ export function createPullContainer (getSources, opts) {
 
           if (config.live) {
             let data = []
-            let syncd = false
+            let syncd = !config.noSync
 
             sink = pull.drain((chunk) => {
-              if (isSyncChunk(chunk)) {
+              data.push(chunk)
+
+              if (!syncd && isSyncChunk(chunk)) {
                 syncd = true
-              } else {
-                data = Array.from(data)
-                data.push(chunk)
               }
 
-              if (syncd) this.setState({ [key]: data })
+              if (syncd) {
+                this.setState({ [key]: Array.from(data) })
+              }
             }, (err) => {
               // TODO: how to handle?
               if (err) console.error(explain(err, `Failed to drain ${key}`))
@@ -127,3 +136,5 @@ export function createPullContainer (getSources, opts) {
     return Container
   }
 }
+
+export { isSyncChunk }

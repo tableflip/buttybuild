@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import explain from 'explain-error'
 import { withSbot } from '../lib/sbot'
-import { createPullContainer } from '../lib/pull-container'
+import pullContainer, { isSyncChunk } from '../lib/pull-container'
 import { createDockerClient } from '../lib/docker'
 
 const Settings = ({onGetSystemInfo, data}) => (
@@ -16,7 +16,7 @@ const Settings = ({onGetSystemInfo, data}) => (
     <div className='pv4'>
       {data && data.length > 0 && (
         <ul className='list pl0 ml0 center ba b--light-silver br2'>
-          {data.map(msg => {
+          {data.filter((m) => !isSyncChunk(m)).map(msg => {
             const d = msg.value.content
             return (
               <li key={msg.key} className='ph3 pv3 bb b--light-silver'>
@@ -55,7 +55,7 @@ class SettingsContainer extends Component {
   }
 }
 
-export default withSbot(createPullContainer(({ sbot }) => {
+export default withSbot(pullContainer(({ sbot }) => {
   return {
     data: {
       live: true,
